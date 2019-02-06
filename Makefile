@@ -15,6 +15,9 @@ src/main.o: src/main.c
 genctemplate: src/main.o
 	$(CC) $^ -o $(OUT) $(LFLAGS)
 
+install: all
+	cp -p $(OUT) /usr/local/bin/$(OUT)
+
 clean:
 	rm -f src/*.o
 	rm -f genctemplate

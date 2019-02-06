@@ -1,3 +1,5 @@
 genctemplate
 *.o
 *.dSYM
+*.swp
+*.swo
