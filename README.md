@@ -7,9 +7,11 @@ Template C code generator to quickly have code to test something
 
 # Usage
 
-`genctemplate /your/path/test.c`
+`genctemplate [-t <c,makefile>] /your/path/filename`
 
-It will generate very simple template C code for you to quickly get started.
+in which
+
+`-t` can be `c`, `makefile` (case sensitive for now).
 
 # License
 

@@ -1,0 +1,19 @@
+CC := gcc
+OUT := myproject
+override CFLAGS += -std=c99 -g -Wall
+LFLAGS := 
+
+DEPS := \
+	myproject.o
+
+.PHONY: all clean
+
+all: $(DEPS)
+
+myproject.o: myproject.c
+	$(CC) $< $(CFLAGS) $(LFLAGS) -o $(OUT)
+
+clean:
+	rm -f *.o
+	rm -f $(OUT)
+
