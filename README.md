@@ -1,5 +1,7 @@
 # genctemplate
-Template C code generator to quickly have code to test something
+
+Template generator for you to quickly further modify and work on top.
+Support C, and Makefile for now.
 
 # How to Build & Install
 
@@ -16,6 +18,13 @@ copy `templates/` directory to your home's directory at `~/.genctemplate/`. Crea
 in which
 
 `-t` can be `c`, `makefile` (case sensitive for now).
+
+i.e. 
+
+* `genctemplate myproject.c`
+* `genctemplate /my/path/main.c`
+* `genctemplate -t c /my/path/main.c`
+* `genctemplate -t makefile Makefile`
 
 # License
 
