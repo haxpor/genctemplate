@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
+#include <stdlib.h>
+
+#define RCDIR ".genctemplate"
 
 enum TemplateType
 {
@@ -13,6 +16,20 @@ static bool wrapper_write(const char* filepath, enum TemplateType tt);
 static int get_file_total_size(FILE* fp);
 static bool write_c_template(const char* filepath);
 static bool write_makefile_template(const char* filepath);
+static void set_user_homedir(const char** ptr);
+
+// to be filled for user's home directory
+static const char* user_homedir = NULL;
+
+///
+/// Set user's home directory to input pointer
+///
+void set_user_homedir(const char** ptr)
+{
+  // get home directory via HOME environment variable
+  const char* homedir = getenv("HOME");
+  *ptr = homedir;
+}
 
 ///
 /// Wrapper to execute writing into template file base on input template type,
@@ -73,8 +90,16 @@ bool write_c_template(const char* filepath)
 
 bool write_makefile_template(const char* filepath)
 {
+  // form template file path to read from
+  char template_filepath[512];
+  if (snprintf(template_filepath, 256, "%s/%s/templates/Makefile.template", user_homedir, RCDIR) >= 256)
+  {
+    fprintf(stderr, "Error forming user's home directory path. The path might be too long.\n");
+    return false;
+  }
+
   // read Makefile template from file
-  FILE* fr = fopen("templates/Makefile.template", "r");
+  FILE* fr = fopen(template_filepath, "r");
   if (fr == NULL)
   {
     fprintf(stderr, "Cannot open Makefile tempalte at templates/Makefile.template\n");
@@ -140,12 +165,15 @@ int main(int argc, char* argv[])
   {
     if (wrapper_write(argv[1], TEMPLATE_TYPE_C))
     {
-      fprintf(stdout, "Template file aready at %s\n", argv[1]);
+      fprintf(stdout, "Template file ready at %s\n", argv[1]);
     }
   }
   // now for other types
   else if (argc > 2)
   {
+    // get user's home directory
+    set_user_homedir(&user_homedir);
+
     // check if user specifies all required parameters
     if (argc < 4)
     {
@@ -197,14 +225,14 @@ int main(int argc, char* argv[])
       {
         if (wrapper_write(argv[argc-1], tt))
         {
-          fprintf(stdout, "Template file aready at %s\n", argv[argc-1]);
+          fprintf(stdout, "Template file ready at %s\n", argv[argc-1]);
         }
       }
       else if (type_param_index == argc-2)
       {
         if (wrapper_write(argv[1], tt))
         {
-          fprintf(stdout, "Template file aready at %s\n", argv[1]);
+          fprintf(stdout, "Template file ready at %s\n", argv[1]);
         }
       }
       else

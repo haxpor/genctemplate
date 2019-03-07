@@ -1,9 +1,13 @@
 # genctemplate
 Template C code generator to quickly have code to test something
 
-# How to Build
+# How to Build & Install
 
 `make` then `make install` (it will install at `/usr/local/bin`)
+
+then
+
+copy `templates/` directory to your home's directory at `~/.genctemplate/`. Create such directory if need. Program will read template files from such place. You can as well modify the template file and it will take effect next time you execute the command.
 
 # Usage
 
