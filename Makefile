@@ -18,6 +18,10 @@ genctemplate: src/main.o
 install: all
 	cp -p $(OUT) /usr/local/bin/$(OUT)
 
+install-templates:
+	@mkdir -p ~/.genctemplate
+	cp -Rp templates ~/.genctemplate/
+
 clean:
 	rm -f src/*.o
 	rm -f genctemplate
