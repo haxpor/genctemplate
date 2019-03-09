@@ -107,9 +107,9 @@ char* read_template_file(enum TemplateType tt, long* rst_size)
   long template_file_size = get_file_total_size(fr);
 
   // dynamically allocate memory to hold template content
-  char* rmem = calloc(1, sizeof(char) * (template_file_size+1));
+  char* rmem = calloc(1, sizeof(char) * template_file_size);
 
-  if (fread(rmem, template_file_size-1, 1, fr) != 1)
+  if (fread(rmem, template_file_size, 1, fr) != 1)
   {
     fprintf(stderr, "Error reading template file %s\n", template_filepath);
 
