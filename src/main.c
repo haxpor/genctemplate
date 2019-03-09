@@ -14,6 +14,7 @@ enum TemplateType
 // list of function signatures
 static bool wrapper_write(const char* filepath, enum TemplateType tt);
 static int get_file_total_size(FILE* fp);
+static char* read_template_file(enum TemplateType tt, long* rst_size);
 static bool write_c_template(const char* filepath);
 static bool write_makefile_template(const char* filepath);
 static void set_user_homedir(const char** ptr);
@@ -73,58 +74,65 @@ int get_file_total_size(FILE* fp)
   return size;
 }
 
-bool write_c_template(const char* filepath)
-{
-  FILE* file = fopen(filepath, "w");
-  if (file == NULL)
-  {
-    fprintf(stderr, "Cannot open file for write at %s\n", filepath);
-    return false;
-  }
-
-  fprintf(file, "#include <stdio.h>\n\nint main (int argc, char* argv[])\n{\n\n\treturn 0;\n}\n");
-
-  fclose(file);
-  return true;
-}
-
-bool write_makefile_template(const char* filepath)
+char* read_template_file(enum TemplateType tt, long* rst_size)
 {
   // form template file path to read from
   char template_filepath[512];
-  if (snprintf(template_filepath, 256, "%s/%s/templates/Makefile.template", user_homedir, RCDIR) >= 256)
+  if (tt == TEMPLATE_TYPE_C)
   {
-    fprintf(stderr, "Error forming user's home directory path. The path might be too long.\n");
-    return false;
+    if (snprintf(template_filepath, 256, "%s/%s/templates/c.template", user_homedir, RCDIR) >= 256)
+    {
+      fprintf(stderr, "Error forming user's home directory path. The path might be too long.\n");
+      return NULL;
+    }
+  }
+  else
+  {
+    if (snprintf(template_filepath, 256, "%s/%s/templates/Makefile.template", user_homedir, RCDIR) >= 256)
+    {
+      fprintf(stderr, "Error forming user's home directory path. The path might be too long.\n");
+      return NULL;
+    }
   }
 
   // read Makefile template from file
   FILE* fr = fopen(template_filepath, "r");
   if (fr == NULL)
   {
-    fprintf(stderr, "Cannot open Makefile tempalte at templates/Makefile.template\n");
-    return false;
+    fprintf(stderr, "Cannot open Makefile template at %s\n", template_filepath);
+    return NULL;
   }
 
   // get total bytes of template file
   long template_file_size = get_file_total_size(fr);
-  // allocate memory to hold template content
-  char rmem[template_file_size+1];
-  if (fread(rmem, template_file_size, 1, fr) != 1)
+
+  // dynamically allocate memory to hold template content
+  char* rmem = calloc(1, sizeof(char) * (template_file_size+1));
+
+  if (fread(rmem, template_file_size-1, 1, fr) != 1)
   {
-    fprintf(stderr, "Error reading template file\n");
+    fprintf(stderr, "Error reading template file %s\n", template_filepath);
 
     // close template file
     fclose(fr);
     fr = NULL;
 
-    return false;
+    return NULL;
   }
   // close template file
   fclose(fr);
   fr = NULL;
 
-  // open output file for writing
+  // set result read size
+  if (rst_size != NULL)
+    *rst_size = template_file_size;
+
+  // return read content of file
+  return rmem;
+}
+
+bool write_c_template(const char* filepath)
+{
   FILE* fo = fopen(filepath, "w");
   if (fo == NULL)
   {
@@ -132,21 +140,63 @@ bool write_makefile_template(const char* filepath)
     return false;
   }
 
-  // write content of template file into output file
-  if (fwrite(rmem, sizeof(rmem) - 1, 1, fo) != 1)
-  {
-    fprintf(stderr, "Error wriring output file\n");
+  // read template file
+  long read_size = 0;
+  char* rmem = read_template_file(TEMPLATE_TYPE_C, &read_size);
+  if (rmem == NULL)
+    return false;
 
+  // write content of template file into output file
+  if (fwrite(rmem, read_size, 1, fo) != 1)
+  {
+    fprintf(stderr, "Error writing output file\n");
+
+    // free read mem
+    free(rmem);
     // close output file
     fclose(fo);
-    fo = NULL;
 
     return false;
   }
 
+  free(rmem);
+  fclose(fo);
+  return true;
+}
+
+bool write_makefile_template(const char* filepath)
+{
+  // open output file for writing
+  FILE* fo = fopen(filepath, "w");
+  if (fo == NULL)
+  {
+    fprintf(stderr, "Cannot open file for write at %s\n", filepath);
+    return false;
+  }
+  
+  // read template file
+  long read_size = 0;
+  char* rmem = read_template_file(TEMPLATE_TYPE_MAKEFILE, &read_size);
+  if (rmem == NULL)
+    return false;
+
+  // write content of template file into output file
+  if (fwrite(rmem, read_size, 1, fo) != 1)
+  {
+    fprintf(stderr, "Error writing output file\n");
+
+    // free read mem
+    free(rmem);
+    // close output file
+    fclose(fo);
+
+    return false;
+  }
+
+  // free read mem
+  free(rmem);
   // close output file
   fclose(fo);
-  fo = NULL;
 
   // SUCCESS
   return true;
