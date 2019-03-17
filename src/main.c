@@ -9,7 +9,14 @@ enum TemplateType
 {
   TEMPLATE_TYPE_C,  // "c"
   TEMPLATE_TYPE_MAKEFILE, // "makefile"
-  TEMPLATE_TYPE_GNUPLOT_SPLOT // "gnuplot-splot"
+  TEMPLATE_TYPE_GNUPLOT_SPLOT, // "gnuplot-splot"
+  TEMPLATE_TYPE_SIZE
+};
+
+const char* kTemplateStrings[] = {
+  "c",
+  "makefile",
+  "gnuplot-splot"
 };
 
 // list of function signatures
@@ -17,6 +24,14 @@ static int get_file_total_size(FILE* fp);
 static char* read_template_file(enum TemplateType tt, long* rst_size);
 static bool write_template(enum TemplateType tt, const char* dst_filepath);
 static void set_user_homedir(const char** ptr);
+
+/*
+ * Get template type from input string.
+ *
+ * \param str null-terminated string to get TemplateType from
+ * \return TemplateType if `str` can be matched, otherwise return -1 if not match any of TemplateType.
+ */
+static int get_template_type_from_str(const char* str);
 
 // to be filled for user's home directory
 static const char* user_homedir = NULL;
@@ -188,6 +203,27 @@ bool write_template(enum TemplateType tt, const char* dst_filepath)
   return true;
 }
 
+int get_template_type_from_str(const char* str)
+{
+  if (strncmp(str, kTemplateStrings[0], strlen(kTemplateStrings[0])) == 0)
+  {
+    return TEMPLATE_TYPE_C;
+  }
+  else if (strncmp(str, kTemplateStrings[1], strlen(kTemplateStrings[1])) == 0)
+  {
+    return TEMPLATE_TYPE_MAKEFILE;
+  }
+  else if (strncmp(str, kTemplateStrings[2], strlen(kTemplateStrings[2])) == 0)
+  {
+    return TEMPLATE_TYPE_GNUPLOT_SPLOT;
+  }
+  else
+  {
+    // not match any of TemplateType
+    return -1;
+  }
+}
+
 int main(int argc, char* argv[])
 {
   // if not enough parameters then print out help
@@ -239,23 +275,15 @@ int main(int argc, char* argv[])
 
           // then the next parameter must be the type
           // TODO: support case insensitive?
-          if (strncmp(argv[i+1], "c", 1) == 0)
-          {
-            tt = TEMPLATE_TYPE_C;
-          }
-          else if (strncmp(argv[i+1], "makefile", 8) == 0)
-          {
-            tt = TEMPLATE_TYPE_MAKEFILE;
-          }
-          else if (strncmp(argv[i+1], "gnuplot-splot", 13) == 0)
-          {
-            tt = TEMPLATE_TYPE_GNUPLOT_SPLOT;
-          }
-          // ERROR case
-          else
+          int tt_val = get_template_type_from_str(argv[i+1]);
+          if (tt_val == -1)
           {
             fprintf(stderr, "Error unrecognized template type. Possible is c, makefile\n");
             return -1;
+          }
+          else
+          {
+            tt = (enum TemplateType)tt_val;
           }
         }
       }     
