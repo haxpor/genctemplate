@@ -8,15 +8,14 @@
 enum TemplateType
 {
   TEMPLATE_TYPE_C,  // "c"
-  TEMPLATE_TYPE_MAKEFILE // "makefile"
+  TEMPLATE_TYPE_MAKEFILE, // "makefile"
+  TEMPLATE_TYPE_GNUPLOT_SPLOT // "gnuplot-splot"
 };
 
 // list of function signatures
-static bool wrapper_write(const char* filepath, enum TemplateType tt);
 static int get_file_total_size(FILE* fp);
 static char* read_template_file(enum TemplateType tt, long* rst_size);
-static bool write_c_template(const char* filepath);
-static bool write_makefile_template(const char* filepath);
+static bool write_template(enum TemplateType tt, const char* dst_filepath);
 static void set_user_homedir(const char** ptr);
 
 // to be filled for user's home directory
@@ -30,27 +29,6 @@ void set_user_homedir(const char** ptr)
   // get home directory via HOME environment variable
   const char* homedir = getenv("HOME");
   *ptr = homedir;
-}
-
-///
-/// Wrapper to execute writing into template file base on input template type,
-/// and output file.
-///
-bool wrapper_write(const char* filepath, enum TemplateType tt)
-{
-  if (tt == TEMPLATE_TYPE_C)
-  {
-    return write_c_template(filepath);
-  }
-  else if (tt == TEMPLATE_TYPE_MAKEFILE)
-  {
-    return write_makefile_template(filepath);
-  }
-  else
-  {
-    fprintf(stderr, "Error unrecognize template type\n");
-    return false;
-  }
 }
 
 ///
@@ -86,9 +64,17 @@ char* read_template_file(enum TemplateType tt, long* rst_size)
       return NULL;
     }
   }
-  else
+  else if (tt == TEMPLATE_TYPE_MAKEFILE)
   {
     if (snprintf(template_filepath, 256, "%s/%s/templates/Makefile.template", user_homedir, RCDIR) >= 256)
+    {
+      fprintf(stderr, "Error forming user's home directory path. The path might be too long.\n");
+      return NULL;
+    }
+  }
+  else
+  {
+    if (snprintf(template_filepath, 256, "%s/%s/templates/gnuplot-splot.sh.template", user_homedir, RCDIR) >= 256)
     {
       fprintf(stderr, "Error forming user's home directory path. The path might be too long.\n");
       return NULL;
@@ -164,19 +150,19 @@ bool write_c_template(const char* filepath)
   return true;
 }
 
-bool write_makefile_template(const char* filepath)
+bool write_template(enum TemplateType tt, const char* dst_filepath)
 {
   // open output file for writing
-  FILE* fo = fopen(filepath, "w");
+  FILE* fo = fopen(dst_filepath, "w");
   if (fo == NULL)
   {
-    fprintf(stderr, "Cannot open file for write at %s\n", filepath);
+    fprintf(stderr, "Cannot open file for write at %s\n", dst_filepath);
     return false;
   }
   
   // read template file
   long read_size = 0;
-  char* rmem = read_template_file(TEMPLATE_TYPE_MAKEFILE, &read_size);
+  char* rmem = read_template_file(tt, &read_size);
   if (rmem == NULL)
     return false;
 
@@ -213,7 +199,7 @@ int main(int argc, char* argv[])
   // convenient for generating c template without needing to specify -t
   if (argc == 2)
   {
-    if (wrapper_write(argv[1], TEMPLATE_TYPE_C))
+    if (write_template(TEMPLATE_TYPE_C, argv[1]))
     {
       fprintf(stdout, "Template file ready at %s\n", argv[1]);
     }
@@ -261,6 +247,10 @@ int main(int argc, char* argv[])
           {
             tt = TEMPLATE_TYPE_MAKEFILE;
           }
+          else if (strncmp(argv[i+1], "gnuplot-splot", 13) == 0)
+          {
+            tt = TEMPLATE_TYPE_GNUPLOT_SPLOT;
+          }
           // ERROR case
           else
           {
@@ -273,14 +263,14 @@ int main(int argc, char* argv[])
       // get output file
       if (type_param_index == 1)
       {
-        if (wrapper_write(argv[argc-1], tt))
+        if (write_template(tt, argv[argc-1]))
         {
           fprintf(stdout, "Template file ready at %s\n", argv[argc-1]);
         }
       }
       else if (type_param_index == argc-2)
       {
-        if (wrapper_write(argv[1], tt))
+        if (write_template(tt, argv[1]))
         {
           fprintf(stdout, "Template file ready at %s\n", argv[1]);
         }
