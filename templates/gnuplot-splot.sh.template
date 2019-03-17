@@ -1,0 +1,32 @@
+#!/usr/local/bin/gnuplot
+
+reset
+
+set parametric
+
+# more smooth of 3d polygon
+set isosamples 30
+# not see through
+# comment this line will have better performance
+set hidden3d
+
+r = 1.0
+
+# cap rotation for z-axis (z-axis is UP in this case)
+# note: gnuplot UP axis is z-axis
+set urange [-pi/2:pi/2]
+
+# plot only 270 degrees
+set vrange [0:3.0/2*pi]
+
+# parametric function for sphere
+fx(u,v) = r*cos(u)*cos(v)
+fy(u,v) = r*cos(u)*sin(v)
+fz(u) = r*sin(u)
+
+splot fx(u,v), fy(u,v), fz(u)
+
+# wait until we close the window
+# or carriage return, or ctrl+c entered
+# otherwise it will close the window immediately after creation
+pause -1
