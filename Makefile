@@ -15,7 +15,7 @@ src/main.o: src/main.c
 genctemplate: src/main.o
 	$(CC) $^ -o $(OUT) $(LFLAGS)
 
-install: all
+install: all install-templates
 	cp -p $(OUT) /usr/local/bin/$(OUT)
 
 install-templates:
