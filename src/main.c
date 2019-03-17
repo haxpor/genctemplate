@@ -229,15 +229,26 @@ int main(int argc, char* argv[])
   // if not enough parameters then print out help
   if (argc < 2)
   {
-    fprintf(stderr, "Usage: genctemplate [-t <c,makefile>] /your/path/filename\n");
+    fprintf(stderr, "Usage: genctemplate {-t <template-string>, templates} /your/path/filename\n");
     return -1;
   }
-  // convenient for generating c template without needing to specify -t
   if (argc == 2)
   {
-    if (write_template(TEMPLATE_TYPE_C, argv[1]))
+    if (strncmp(argv[1], "templates", 9) == 0)
     {
-      fprintf(stdout, "Template file ready at %s\n", argv[1]);
+      // print all supported templates
+      for (int i=0; i<TEMPLATE_TYPE_SIZE; ++i)
+      {
+        fprintf(stdout, "%s\n", kTemplateStrings[i]);
+      }
+    }
+    else
+    {
+      // convenient for generating c template without needing to specify -t
+      if (write_template(TEMPLATE_TYPE_C, argv[1]))
+      {
+        fprintf(stdout, "Template file ready at %s\n", argv[1]);
+      }
     }
   }
   // now for other types
@@ -249,7 +260,7 @@ int main(int argc, char* argv[])
     // check if user specifies all required parameters
     if (argc < 4)
     {
-      fprintf(stderr, "Usage genctemplate -t <c,makefile> /your/path/outputfile\n");
+      fprintf(stderr, "Usage genctemplate -t <template-string> /your/path/outputfile\n");
       return -1;
     }
     else
