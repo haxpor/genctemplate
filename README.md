@@ -7,17 +7,12 @@ Support C, and Makefile for now.
 
 `make` then `make install` (it will install at `/usr/local/bin`)
 
-then
-
-copy `templates/` directory to your home's directory at `~/.genctemplate/`. Create such directory if need. Program will read template files from such place. You can as well modify the template file and it will take effect next time you execute the command.
+Behind the scene, it will create a new directory at `~/.genctemplate` then copy templates directory to such location.
 
 # Usage
 
-`genctemplate [-t <c,makefile>] /your/path/filename`
-
-in which
-
-`-t` can be `c`, `makefile` (case sensitive for now).
+* `genctemplate -t <template-string> /your/path/filename` - to generate template at specified destination path
+* `genctemplate templates` - to list all supported template
 
 i.e. 
 
